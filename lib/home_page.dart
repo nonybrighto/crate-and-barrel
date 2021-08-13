@@ -1,11 +1,51 @@
 import 'package:crate_and_barrel/constants.dart';
+import 'package:crate_and_barrel/models/product_variant.dart';
+import 'package:crate_and_barrel/widgets/color_button.dart';
+import 'package:crate_and_barrel/widgets/quantity_control_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late List<ProductVariant> variants;
+  late ProductVariant selectedVariant;
+  late AnimationController _quantitySelectorController;
+
+  final duration = const Duration(milliseconds: 500);
+  final Tween<Offset> _slideTween =
+      Tween(begin: const Offset(0, 1), end: const Offset(0, 0));
+
+  @override
+  void initState() {
+    super.initState();
+    variants = [
+      ProductVariant(image: kLampImagePath, color: const Color(0xff2D4046)),
+      ProductVariant(image: kLampImagePath, color: const Color(0xffDF9E4D)),
+      ProductVariant(image: kLampImagePath, color: const Color(0xff444158)),
+      ProductVariant(image: kLampImagePath, color: const Color(0xffC1C1C1)),
+    ];
+    selectedVariant = variants[0];
+
+    _quantitySelectorController =
+        AnimationController(vsync: this, duration: duration);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _quantitySelectorController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +90,8 @@ class HomePage extends StatelessWidget {
             left: 0,
             right: 0,
             child: _buildBottomBar(),
-          )
+          ),
+          _buildQuantitySelector()
         ],
       ),
     );
@@ -61,12 +102,14 @@ class HomePage extends StatelessWidget {
       height: 420,
       child: Stack(
         children: [
-          Container(
+          AnimatedContainer(
+            duration: duration,
             height: 380,
-            decoration: const BoxDecoration(
-                borderRadius:
-                    BorderRadius.only(bottomRight: Radius.circular(100)),
-                color: Color(0xff2d4046)),
+            decoration: BoxDecoration(
+              borderRadius:
+                  const BorderRadius.only(bottomRight: Radius.circular(100)),
+              color: selectedVariant.color,
+            ),
             width: 250,
           ),
           Positioned(
@@ -138,7 +181,23 @@ class HomePage extends StatelessWidget {
   }
 
   _buildColorsDisplay() {
-    return Text('Colors');
+    return Row(
+      children: [
+        for (ProductVariant variant in variants)
+          Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: ColorButton(
+              productColor: variant.color,
+              isSelected: selectedVariant.color == variant.color,
+              onPressed: () {
+                setState(() {
+                  selectedVariant = variant;
+                });
+              },
+            ),
+          )
+      ],
+    );
   }
 
   Widget _buildBottomBar() {
@@ -187,7 +246,13 @@ class HomePage extends StatelessWidget {
                 )
               ]),
             ),
-            onTap: () {},
+            onTap: () {
+              if (_quantitySelectorController.isDismissed) {
+                _quantitySelectorController.forward();
+              } else if (_quantitySelectorController.isCompleted) {
+                _quantitySelectorController.reverse();
+              }
+            },
           ),
           const Spacer(),
           IconButton(
@@ -214,6 +279,80 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+
+  _buildQuantitySelector() {
+    const spacer = SizedBox(
+      height: 25,
+    );
+    return SlideTransition(
+      position: _slideTween.animate(_quantitySelectorController),
+      child: DraggableScrollableSheet(
+          expand: true,
+          initialChildSize: 0.36,
+          maxChildSize: 0.36,
+          builder: (context, _) {
+            return Container(
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(35))),
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Select Quantity',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: kTextDarkColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25),
+                      child: Column(children: [
+                        spacer,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            QuantityControlButton(
+                                isIncrement: false, onPressed: () {}),
+                            const Text('2',
+                                style: TextStyle(
+                                  color: kTextDarkColor,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w500,
+                                )),
+                            QuantityControlButton(
+                                isIncrement: false, onPressed: () {}),
+                          ],
+                        ),
+                        spacer,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                                onPressed: () {
+                                  _quantitySelectorController.reverse();
+                                },
+                                child: const Text('Cancel')),
+                            TextButton(
+                                onPressed: () {},
+                                child: const Text(
+                                  'Done',
+                                  style: TextStyle(
+                                    color: Color(0xff4187ff),
+                                  ),
+                                ))
+                          ],
+                        )
+                      ]),
+                    )
+                  ]),
+            );
+          }),
     );
   }
 }
