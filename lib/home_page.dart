@@ -16,15 +16,15 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late List<ProductVariant> variants;
   late ProductVariant selectedVariant;
   late AnimationController _quantitySelectorController;
+  late AnimationController _controlButtonsController;
 
-  final duration = const Duration(milliseconds: 500);
+  final duration = const Duration(milliseconds: 300);
   final Tween<Offset> _slideTween =
-      Tween(begin: const Offset(0, 1), end: const Offset(0, 0));
+      Tween(begin: const Offset(0, 0.5), end: const Offset(0, 0));
 
   @override
   void initState() {
@@ -39,6 +39,10 @@ class _HomePageState extends State<HomePage>
 
     _quantitySelectorController =
         AnimationController(vsync: this, duration: duration);
+    _controlButtonsController =
+        AnimationController(vsync: this, duration: duration);
+
+    _controlButtonsController.forward();
   }
 
   @override
@@ -225,59 +229,61 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildControlButtons() {
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: kDefaultPadding, vertical: 10),
-      child: Row(
-        children: [
-          InkWell(
-            child: Material(
-              color: Colors.transparent,
-              child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                Text(
-                  'Qty: 1',
-                  style: TextStyle(fontSize: 20),
-                ),
-                SizedBox(width: 5),
-                Icon(
-                  Icons.expand_more,
-                  color: Colors.white,
-                  size: 30,
-                )
-              ]),
+    return SlideTransition(
+      position: _slideTween.animate(_controlButtonsController),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: kDefaultPadding, vertical: 10),
+        child: Row(
+          children: [
+            InkWell(
+              child: Material(
+                color: Colors.transparent,
+                child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                  Text(
+                    'Qty: 1',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  SizedBox(width: 5),
+                  Icon(
+                    Icons.expand_more,
+                    color: Colors.white,
+                    size: 30,
+                  )
+                ]),
+              ),
+              onTap: () async {
+                if (_quantitySelectorController.isDismissed) {
+                  await _controlButtonsController.reverse();
+                  _quantitySelectorController.forward();
+                }
+              },
             ),
-            onTap: () {
-              if (_quantitySelectorController.isDismissed) {
-                _quantitySelectorController.forward();
-              } else if (_quantitySelectorController.isCompleted) {
-                _quantitySelectorController.reverse();
-              }
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: SvgPicture.asset(
-              kFavoriteconPath,
-              width: 30,
+            const Spacer(),
+            IconButton(
+              onPressed: () {},
+              icon: SvgPicture.asset(
+                kFavoriteconPath,
+                width: 30,
+              ),
             ),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          SizedBox(
-            width: 70,
-            height: 70,
-            child: FloatingActionButton(
-                elevation: 0,
-                backgroundColor: Colors.white,
-                child: SvgPicture.asset(
-                  kAddToCartIconPath,
-                  width: 25,
-                ),
-                onPressed: () {}),
-          )
-        ],
+            const SizedBox(
+              width: 10,
+            ),
+            SizedBox(
+              width: 70,
+              height: 70,
+              child: FloatingActionButton(
+                  elevation: 0,
+                  backgroundColor: Colors.white,
+                  child: SvgPicture.asset(
+                    kAddToCartIconPath,
+                    width: 25,
+                  ),
+                  onPressed: () {}),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -334,12 +340,16 @@ class _HomePageState extends State<HomePage>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             TextButton(
-                                onPressed: () {
-                                  _quantitySelectorController.reverse();
+                                onPressed: () async {
+                                  await _quantitySelectorController.reverse();
+                                  await _controlButtonsController.forward();
                                 },
                                 child: const Text('Cancel')),
                             TextButton(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  await _quantitySelectorController.reverse();
+                                  await _controlButtonsController.forward();
+                                },
                                 child: const Text(
                                   'Done',
                                   style: TextStyle(
