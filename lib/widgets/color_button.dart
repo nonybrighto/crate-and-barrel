@@ -1,9 +1,10 @@
+import 'package:crate_and_barrel/constants.dart';
 import 'package:flutter/material.dart';
 
 class ColorButton extends StatelessWidget {
   final Color productColor;
   final bool isSelected;
-  final VoidCallback onPressed;
+  final Function(Offset) onPressed;
   const ColorButton({
     Key? key,
     required this.productColor,
@@ -16,15 +17,20 @@ class ColorButton extends StatelessWidget {
     return GestureDetector(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
-        width: 25,
-        height: 25,
+        width: kColorButtonSize,
+        height: kColorButtonSize,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: productColor,
           border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
         ),
       ),
-      onTap: onPressed,
+      onTap: () {
+        RenderBox object = context.findRenderObject() as RenderBox;
+        Offset globalPosition = object.localToGlobal(Offset.zero);
+        print('${globalPosition.dx} ${globalPosition.dy}');
+        onPressed(globalPosition);
+      },
     );
   }
 }

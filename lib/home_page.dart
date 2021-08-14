@@ -1,5 +1,7 @@
 import 'package:crate_and_barrel/constants.dart';
 import 'package:crate_and_barrel/models/product_variant.dart';
+import 'package:crate_and_barrel/widgets/cart_add_display.dart';
+import 'package:crate_and_barrel/widgets/cart_icon.dart';
 import 'package:crate_and_barrel/widgets/color_button.dart';
 import 'package:crate_and_barrel/widgets/quantity_control_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,6 +23,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late ProductVariant selectedVariant;
   late AnimationController _quantitySelectorController;
   late AnimationController _controlButtonsController;
+  late AnimationController _cartAddController;
+  late Offset cartIconPosition;
+  late Color notificationColor;
+  Offset currentColorButtonPosition = const Offset(50, 300);
+  bool itemAddedToCart = false;
+  int cartContentCount = 0;
+  int quantityToAdd = 1;
+  final _cartIconKey = GlobalKey();
 
   final duration = const Duration(milliseconds: 300);
   final Tween<Offset> _slideTween =
@@ -30,25 +40,48 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     variants = [
-      ProductVariant(image: kLampImagePath, color: const Color(0xff2D4046)),
-      ProductVariant(image: kLampImagePath, color: const Color(0xffDF9E4D)),
-      ProductVariant(image: kLampImagePath, color: const Color(0xff444158)),
-      ProductVariant(image: kLampImagePath, color: const Color(0xffC1C1C1)),
+      ProductVariant(
+        name: 'green',
+        image: kLampImagePath,
+        color: const Color(0xff2D4046),
+      ),
+      ProductVariant(
+        name: 'yellow',
+        image: kLampImagePath,
+        color: const Color(0xffDF9E4D),
+      ),
+      ProductVariant(
+        name: 'purple',
+        image: kLampImagePath,
+        color: const Color(0xff444158),
+      ),
+      ProductVariant(
+        name: 'grey',
+        image: kLampImagePath,
+        color: const Color(0xffC1C1C1),
+      ),
     ];
     selectedVariant = variants[0];
+    notificationColor = selectedVariant.color;
 
     _quantitySelectorController =
         AnimationController(vsync: this, duration: duration);
     _controlButtonsController =
         AnimationController(vsync: this, duration: duration);
+    _cartAddController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: kCartAddDurationInMs));
 
     _controlButtonsController.forward();
+    _getCartIconPosition();
   }
 
   @override
   void dispose() {
     super.dispose();
     _quantitySelectorController.dispose();
+    _controlButtonsController.dispose();
+    _cartAddController.dispose();
   }
 
   @override
@@ -66,9 +99,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: kDefaultPadding),
-            child: IconButton(
-              icon: SvgPicture.asset(kCartIconPath),
-              onPressed: () {},
+            child: CartIcon(
+              key: _cartIconKey,
+              notificationColor: notificationColor,
+              hasNotification: itemAddedToCart,
+              contentCount: cartContentCount,
             ),
           )
         ],
@@ -193,9 +228,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: ColorButton(
               productColor: variant.color,
               isSelected: selectedVariant.color == variant.color,
-              onPressed: () {
+              onPressed: (offset) {
                 setState(() {
                   selectedVariant = variant;
+                  currentColorButtonPosition =
+                      offset; // This determines the starting point of the expanding dot on the overlay
                 });
               },
             ),
@@ -239,13 +276,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             InkWell(
               child: Material(
                 color: Colors.transparent,
-                child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
                   Text(
-                    'Qty: 1',
-                    style: TextStyle(fontSize: 20),
+                    'Qty: $quantityToAdd',
+                    style: const TextStyle(fontSize: 20),
                   ),
-                  SizedBox(width: 5),
-                  Icon(
+                  const SizedBox(width: 5),
+                  const Icon(
                     Icons.expand_more,
                     color: Colors.white,
                     size: 30,
@@ -280,7 +317,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     kAddToCartIconPath,
                     width: 25,
                   ),
-                  onPressed: () {}),
+                  onPressed: () async {
+                    OverlayEntry entry = OverlayEntry(builder: (context) {
+                      return CartAddDisplay(
+                          selectedVariant: selectedVariant,
+                          cartIconPosition: cartIconPosition,
+                          colorButtonPosition: currentColorButtonPosition,
+                          animationController: _cartAddController);
+                    });
+                    Overlay.of(context)!.insert(entry);
+                    await _cartAddController.forward(from: 0);
+                    entry.remove();
+                    setState(() {
+                      itemAddedToCart = true;
+                      notificationColor = selectedVariant.color;
+                      cartContentCount += quantityToAdd;
+                      quantityToAdd = 1;
+                    });
+                  }),
             )
           ],
         ),
@@ -364,5 +418,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             );
           }),
     );
+  }
+
+  _getCartIconPosition() {
+    if (WidgetsBinding.instance != null) {
+      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+        RenderBox object =
+            _cartIconKey.currentContext!.findRenderObject() as RenderBox;
+        Offset globalPosition = object.localToGlobal(Offset.zero);
+        cartIconPosition = globalPosition;
+        print(globalPosition.dx);
+      });
+    }
   }
 }
