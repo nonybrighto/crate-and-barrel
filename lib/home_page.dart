@@ -320,6 +320,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   onPressed: () async {
                     OverlayEntry entry = OverlayEntry(builder: (context) {
                       return CartAddDisplay(
+                          itemCount: quantityToAdd,
                           selectedVariant: selectedVariant,
                           cartIconPosition: cartIconPosition,
                           colorButtonPosition: currentColorButtonPosition,

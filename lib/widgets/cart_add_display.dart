@@ -24,8 +24,10 @@ class CartAddDisplay extends StatefulWidget {
 
 class _CartAddDisplayState extends State<CartAddDisplay> {
   late double buttonExpansionEnd;
-  late Animation buttonExpandAnimation;
-  late Animation buttonCollapseAnimation;
+  late Animation<double> buttonExpandAnimation;
+  late Animation<double> buttonCollapseAnimation;
+  late Animation<double> textSlideInAnimation;
+  late Animation<double> textSlideOutAnimation;
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,27 @@ class _CartAddDisplayState extends State<CartAddDisplay> {
           _getInterval(800),
           1.0,
           curve: Curves.easeOut,
+        )));
+
+    textSlideInAnimation = Tween(
+      begin: 50.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+        parent: widget.animationController,
+        curve: Interval(
+          0.0,
+          _getInterval(600),
+          curve: Curves.fastLinearToSlowEaseIn,
+        )));
+    textSlideOutAnimation = Tween(
+      begin: 0.0,
+      end: -50.0,
+    ).animate(CurvedAnimation(
+        parent: widget.animationController,
+        curve: Interval(
+          _getInterval(800),
+          1.0,
+          curve: Curves.fastLinearToSlowEaseIn,
         )));
 
     _calculateExpansionEnd();
@@ -89,7 +112,39 @@ class _CartAddDisplayState extends State<CartAddDisplay> {
                 ),
               );
             }),
+        _buildTextAnimationDisplay(),
       ],
+    );
+  }
+
+  Widget _buildTextAnimationDisplay() {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: AnimatedBuilder(
+            animation: widget.animationController,
+            builder: (context, child) {
+              final reverseStart = _getInterval(800);
+              bool reverse = widget.animationController.value > reverseStart;
+
+              double translationPosition = reverse
+                  ? textSlideOutAnimation.value
+                  : textSlideInAnimation.value;
+              return ClipPath(
+                clipper: TextClipPath(),
+                child: Container(
+                  color: Colors.transparent,
+                  child: Transform.translate(
+                    offset: Offset(0, translationPosition),
+                    child: Text(
+                      '${widget.itemCount} ${widget.selectedVariant.name} item${widget.itemCount > 1 ? 's' : ''} added',
+                      style: const TextStyle(fontSize: 40),
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
     );
   }
 
@@ -107,4 +162,19 @@ class _CartAddDisplayState extends State<CartAddDisplay> {
   double _getInterval(double timeInmilliseconds) {
     return timeInmilliseconds / kCartAddDurationInMs;
   }
+}
+
+class TextClipPath extends CustomClipper<Path> {
+  var radius = 10.0;
+  @override
+  Path getClip(Size size) {
+    Path path = Path()
+      ..lineTo(0, size.height)
+      ..lineTo(size.width, size.height)
+      ..lineTo(size.width, 0);
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
