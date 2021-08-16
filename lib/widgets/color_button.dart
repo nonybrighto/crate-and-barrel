@@ -28,7 +28,6 @@ class ColorButton extends StatelessWidget {
       onTap: () {
         RenderBox object = context.findRenderObject() as RenderBox;
         Offset globalPosition = object.localToGlobal(Offset.zero);
-        print('${globalPosition.dx} ${globalPosition.dy}');
         onPressed(globalPosition);
       },
     );

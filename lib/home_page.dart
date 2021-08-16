@@ -4,6 +4,7 @@ import 'package:crate_and_barrel/widgets/cart_add_display.dart';
 import 'package:crate_and_barrel/widgets/cart_icon.dart';
 import 'package:crate_and_barrel/widgets/color_button.dart';
 import 'package:crate_and_barrel/widgets/quantity_control_button.dart';
+import 'package:crate_and_barrel/widgets/variant_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _quantitySelectorController;
   late AnimationController _controlButtonsController;
   late AnimationController _cartAddController;
+  late AnimationController _slideController;
   late Offset cartIconPosition;
   late Color notificationColor;
   Offset currentColorButtonPosition = const Offset(50, 300);
@@ -47,7 +49,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
       ProductVariant(
         name: 'yellow',
-        image: kLampImagePath,
+        image: '$kImagesPath/yellow_lamp.png',
         color: const Color(0xffDF9E4D),
       ),
       ProductVariant(
@@ -72,6 +74,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         vsync: this,
         duration: const Duration(milliseconds: kCartAddDurationInMs));
 
+    double maximumScrollAngle = kSliderRotationAngle * (variants.length - 1);
+    _slideController = AnimationController(
+        lowerBound: 0.0,
+        upperBound: maximumScrollAngle,
+        vsync: this,
+        duration: const Duration(milliseconds: 500));
+
     _controlButtonsController.forward();
     _getCartIconPosition();
   }
@@ -82,6 +91,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _quantitySelectorController.dispose();
     _controlButtonsController.dispose();
     _cartAddController.dispose();
+    _slideController.dispose();
   }
 
   @override
@@ -114,7 +124,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildImageDisplay(context),
+                VariantSlider(
+                  slideController: _slideController,
+                  productVariants: variants,
+                  selectedVariant: selectedVariant,
+                  onVariantSelected: (variant) {
+                    setState(() {
+                      selectedVariant = variant;
+                    });
+                  },
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: kDefaultPadding,
@@ -131,29 +150,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: _buildBottomBar(),
           ),
           _buildQuantitySelector()
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageDisplay(BuildContext context) {
-    return SizedBox(
-      height: 420,
-      child: Stack(
-        children: [
-          AnimatedContainer(
-            duration: duration,
-            height: 380,
-            decoration: BoxDecoration(
-              borderRadius:
-                  const BorderRadius.only(bottomRight: Radius.circular(100)),
-              color: selectedVariant.color,
-            ),
-            width: 250,
-          ),
-          Positioned(
-              top: 155, left: -50, child: Image.asset(kLampLightImagePath)),
-          Image.asset(kLampImagePath),
         ],
       ),
     );
@@ -222,17 +218,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   _buildColorsDisplay() {
     return Row(
       children: [
-        for (ProductVariant variant in variants)
+        for (int i = 0; i < variants.length; i++)
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: ColorButton(
-              productColor: variant.color,
-              isSelected: selectedVariant.color == variant.color,
+              productColor: variants[i].color,
+              isSelected: selectedVariant.color == variants[i].color,
               onPressed: (offset) {
                 setState(() {
-                  selectedVariant = variant;
+                  selectedVariant = variants[i];
                   currentColorButtonPosition =
                       offset; // This determines the starting point of the expanding dot on the overlay
+                  _slideController.animateTo(i * kSliderRotationAngle);
                 });
               },
             ),
@@ -428,7 +425,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             _cartIconKey.currentContext!.findRenderObject() as RenderBox;
         Offset globalPosition = object.localToGlobal(Offset.zero);
         cartIconPosition = globalPosition;
-        print(globalPosition.dx);
       });
     }
   }

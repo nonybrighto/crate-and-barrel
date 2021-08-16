@@ -16,6 +16,7 @@ const kLampImagePath = '$kImagesPath/lamp.png';
 //dimensions
 const kDefaultPadding = 10.0;
 const kColorButtonSize = 25.0;
+const kSliderRotationAngle = 23.0;
 
 //durations
 const kCartAddDurationInMs = 1600;
