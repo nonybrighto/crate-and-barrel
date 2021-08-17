@@ -1,13 +1,13 @@
 import 'package:crate_and_barrel/constants.dart';
 import 'package:flutter/material.dart';
 
-class ColorButton extends StatelessWidget {
-  final Color productColor;
+class VariantButton extends StatelessWidget {
+  final Color variantColor;
   final bool isSelected;
   final Function(Offset) onPressed;
-  const ColorButton({
+  const VariantButton({
     Key? key,
-    required this.productColor,
+    required this.variantColor,
     this.isSelected = false,
     required this.onPressed,
   }) : super(key: key);
@@ -21,7 +21,7 @@ class ColorButton extends StatelessWidget {
         height: kColorButtonSize,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: productColor,
+          color: variantColor,
           border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
         ),
       ),

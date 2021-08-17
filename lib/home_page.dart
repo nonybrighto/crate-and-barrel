@@ -180,7 +180,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildColorsDisplay(),
+            _buildVariantButtonsDisplay(),
             const Text('\$179.00',
                 style: TextStyle(
                   fontSize: 30,
@@ -224,14 +224,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  _buildColorsDisplay() {
+  _buildVariantButtonsDisplay() {
     return Row(
       children: [
         for (int i = 0; i < variants.length; i++)
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
-            child: ColorButton(
-              productColor: variants[i].color,
+            child: VariantButton(
+              variantColor: variants[i].color,
               isSelected: selectedVariant.color == variants[i].color,
               onPressed: (offset) {
                 setState(() {
