@@ -1,6 +1,6 @@
 # Crate & Barrel - Dark Mobile App Concept Animated
 
-An animated flutter UI developed by nonybrighto and designed by [Akram Khalid.](https://dribbble.com/shots/8500950-Crate-Barrel-Dark-Mobile-App-Concept-Animated)
+An animated flutter UI for E-commerce product variant selection / add to cart developed by nonybrighto and designed by [Akram Khalid.](https://dribbble.com/shots/8500950-Crate-Barrel-Dark-Mobile-App-Concept-Animated)
 
 ## Overview
 
@@ -10,7 +10,7 @@ An animated flutter UI developed by nonybrighto and designed by [Akram Khalid.](
 
 ## Animation
 
-<img src="screenshots/crate_and_barrel.gif">
+<img src="screenshots/crate_and_barrel.gif" width="45%">
 
 ## Screenshots
 
