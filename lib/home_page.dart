@@ -2,7 +2,7 @@ import 'package:crate_and_barrel/constants.dart';
 import 'package:crate_and_barrel/models/product_variant.dart';
 import 'package:crate_and_barrel/widgets/cart_add_display.dart';
 import 'package:crate_and_barrel/widgets/cart_icon.dart';
-import 'package:crate_and_barrel/widgets/color_button.dart';
+import 'package:crate_and_barrel/widgets/variant_button.dart';
 import 'package:crate_and_barrel/widgets/quantity_control_button.dart';
 import 'package:crate_and_barrel/widgets/variant_slider.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,11 +29,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late Offset cartIconPosition;
   late Color notificationColor;
-  Offset currentColorButtonPosition = const Offset(50, 300);
+  Offset selectedVariantButtonPosition = const Offset(50, 300);
   bool itemAddedToCart = false;
   int cartContentCount = 0;
   int quantityToAdd = 1;
+
   final _cartIconKey = GlobalKey();
+  final _firstVariantButtonKey = GlobalKey();
 
   final duration = const Duration(milliseconds: 300);
   final Tween<Offset> _slideTween =
@@ -91,6 +93,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     _controlButtonsController.forward();
     _getCartIconPosition();
+    _getDefaultVariantButtonPosition();
   }
 
   @override
@@ -231,12 +234,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: VariantButton(
+              key: i == 0 ? _firstVariantButtonKey : null,
               variantColor: variants[i].color,
               isSelected: selectedVariant.color == variants[i].color,
               onPressed: (offset) {
                 setState(() {
                   selectedVariant = variants[i];
-                  currentColorButtonPosition =
+                  selectedVariantButtonPosition =
                       offset; // This determines the starting point of the expanding dot on the overlay
                   _slideController.animateTo(i * kSliderRotationAngle);
                 });
@@ -329,7 +333,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           itemCount: quantityToAdd,
                           selectedVariant: selectedVariant,
                           cartIconPosition: cartIconPosition,
-                          colorButtonPosition: currentColorButtonPosition,
+                          colorButtonPosition: selectedVariantButtonPosition,
                           animationController: _cartAddController);
                     });
                     Overlay.of(context)!.insert(entry);
@@ -456,6 +460,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             _cartIconKey.currentContext!.findRenderObject() as RenderBox;
         Offset globalPosition = object.localToGlobal(Offset.zero);
         cartIconPosition = globalPosition;
+      });
+    }
+  }
+
+  Widget? _getDefaultVariantButtonPosition() {
+    if (WidgetsBinding.instance != null) {
+      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+        RenderBox object = _firstVariantButtonKey.currentContext!
+            .findRenderObject() as RenderBox;
+        Offset globalPosition = object.localToGlobal(Offset.zero);
+        selectedVariantButtonPosition = globalPosition;
       });
     }
   }
