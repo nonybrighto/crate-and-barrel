@@ -46,21 +46,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         name: 'green',
         image: kLampImagePath,
         color: const Color(0xff2D4046),
+        backgroundColor: const Color(0xff2D4046),
       ),
       ProductVariant(
         name: 'yellow',
         image: '$kImagesPath/yellow_lamp.png',
         color: const Color(0xffDF9E4D),
+        backgroundColor: const Color(0xffA96301),
       ),
       ProductVariant(
         name: 'purple',
-        image: kLampImagePath,
+        image: '$kImagesPath/purple_lamp.png',
         color: const Color(0xff444158),
+        backgroundColor: const Color(0xff444158),
       ),
       ProductVariant(
         name: 'grey',
-        image: kLampImagePath,
+        image: '$kImagesPath/grey_lamp.png',
         color: const Color(0xffC1C1C1),
+        backgroundColor: const Color(0xff8d8d8d),
       ),
     ];
     selectedVariant = variants[0];

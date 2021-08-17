@@ -46,7 +46,7 @@ class _VariantSliderState extends State<VariantSlider>
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.only(
                         bottomRight: Radius.circular(100)),
-                    color: widget.selectedVariant.color,
+                    color: widget.selectedVariant.backgroundColor,
                   ),
                   width: 250,
                 ),
