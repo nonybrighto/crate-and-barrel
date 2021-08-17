@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late ProductVariant selectedVariant;
   late AnimationController _quantitySelectorController;
   late AnimationController _controlButtonsController;
+  late AnimationController _quantityCounterController;
   late AnimationController _cartAddController;
   late AnimationController _slideController;
   late Offset cartIconPosition;
@@ -74,6 +75,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         AnimationController(vsync: this, duration: duration);
     _controlButtonsController =
         AnimationController(vsync: this, duration: duration);
+    _quantityCounterController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 200))
+      ..forward();
     _cartAddController = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: kCartAddDurationInMs));
@@ -96,6 +100,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _controlButtonsController.dispose();
     _cartAddController.dispose();
     _slideController.dispose();
+    _quantityCounterController.dispose();
   }
 
   @override
@@ -380,15 +385,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             QuantityControlButton(
-                                isIncrement: false, onPressed: () {}),
-                            const Text('2',
-                                style: TextStyle(
-                                  color: kTextDarkColor,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w500,
-                                )),
+                                isIncrement: false,
+                                onPressed: () {
+                                  setState(() {
+                                    quantityToAdd = quantityToAdd == 0
+                                        ? 0
+                                        : ++quantityToAdd;
+                                  });
+                                  _quantityCounterController.forward(from: 0);
+                                }),
+                            AnimatedBuilder(
+                                animation: _quantityCounterController,
+                                child: Text('$quantityToAdd',
+                                    style: const TextStyle(
+                                      color: kTextDarkColor,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w500,
+                                    )),
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: _quantityCounterController.value,
+                                    child: child,
+                                  );
+                                }),
                             QuantityControlButton(
-                                isIncrement: false, onPressed: () {}),
+                                isIncrement: true,
+                                onPressed: () {
+                                  _quantityCounterController.forward(from: 0);
+                                  setState(() {
+                                    quantityToAdd += 1;
+                                  });
+                                }),
                           ],
                         ),
                         spacer,
